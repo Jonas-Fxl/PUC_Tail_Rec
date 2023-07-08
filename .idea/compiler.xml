@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <bytecodeTargetLevel>
+      <module name="calculator" target="11" />
+      <module name="calculator.main" target="19" />
+      <module name="calculator.test" target="19" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

@@ -1,0 +1,15 @@
+def factorial(n: Integer): Integer =>
+  if n <= 1 then
+    1000
+  else
+    factorial(n - 1)
+
+factorial(5)
+
+def t_factorial(zahl: Integer, acc : Integer): Integer =>
+  if zahl <= 1 then
+    acc
+  else
+    t_factorial(zahl - 1)(acc * zahl)
+
+t_factorial(5, 1)

@@ -34,7 +34,7 @@ class ProgVisitor(): PucBaseVisitor<Prog>() {
     }
 }
 
-class FnDefVisitor(): PucBaseVisitor<FnDef>() {
+class FnDefVisitor : PucBaseVisitor<FnDef>() {
     override fun visitFnDef(ctx: PucParser.FnDefContext): FnDef {
         val name = ctx.name.text
         val params = ctx.fnParam().map {
@@ -43,10 +43,10 @@ class FnDefVisitor(): PucBaseVisitor<FnDef>() {
 
         val tyResult = TypeVisitor().visit(ctx.tyResult)
         val body = ExprVisitor().visit(ctx.body)
-        val expr = params.reversed().fold(body) { acc, (param, tyParam) -> Expr.Lambda(param, tyParam, acc) }
+        val expr = params.foldRight(body) { (param, tyParam), acc -> Expr.Lambda(param, tyParam, acc) }
 
         val tyVars = ctx.tyVars()?.NAME()?.map { it.text } ?: listOf()
-        val ty = params.reversed().fold(tyResult) { acc, (_, ty) -> Monotype.Function(ty, acc) }
+        val ty = params.foldRight(tyResult) { (_, ty), acc -> Monotype.Function(ty, acc) }
         return FnDef(name, expr, Polytype(tyVars, ty))
     }
 }
@@ -130,6 +130,7 @@ class ExprVisitor(): PucBaseVisitor<Expr>() {
         return Expr.Lit(Primitive.Text(text))
     }
 
+    //Function handler
     override fun visitLambda(ctx: PucParser.LambdaContext): Expr {
         val param = ctx.param.text
         val tyParam = ctx.tyParam?.let{ TypeVisitor().visit(it) }
@@ -140,6 +141,7 @@ class ExprVisitor(): PucBaseVisitor<Expr>() {
     override fun visitApp(ctx: PucParser.AppContext): Expr {
         val fn = this.visit(ctx.fn)
         val arg = this.visit(ctx.arg)
+        println(arg)
         return Expr.App(fn, arg)
     }
 
@@ -188,9 +190,12 @@ class ExprVisitor(): PucBaseVisitor<Expr>() {
             "||" -> Operator.Or
             "&&" -> Operator.And
             "++" -> Operator.Concat
+            "<=" -> Operator.EqualOrLess
+            ">=" -> Operator.EqualOrMore
             else -> throw Error("Unknown operator")
         }
         val right = this.visit(ctx.right)
         return Expr.Binary(left, op, right)
     }
+
 }

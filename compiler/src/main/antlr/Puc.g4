@@ -34,6 +34,9 @@ expr
   | left=expr op='==' right=expr # Binary
   | left=expr op='&&' right=expr # Binary
   | left=expr op='||' right=expr # Binary
+  // Von mir hinzugefügt
+  | left=expr op='<=' right=expr # Binary
+  | left=expr op='>=' right=expr # Binary
   ;
 
 type
@@ -48,7 +51,7 @@ type
 
 TEXT_LIT: '"' ~('"')* '"';
 BOOL_LIT: 'false' | 'true';
-INT: [0-9]+;
+INT: '-'? [0-9]+;
 NAME: [a-z_][a-zA-Z_]*;
 UP_NAME: [A-Z][a-zA-Z_]*;
 WS: [ \t\r\n] -> skip;

@@ -1,0 +1,19 @@
+def factorial_tail(n: Integer): Integer =>
+  factorialHelper(n)(1)
+
+def factorialHelper(n: Integer, acc: Integer): Integer =>
+  if n <= 1 then
+    acc
+  else
+    let printedInt = int_to_string(acc) in
+    let _ = print(printedInt) in
+    factorialHelper(n - 1)(acc * n)
+
+def factorial(n: Integer): Integer =>
+    if n == 0 then
+        1
+    else
+        n * factorial(n - 1)
+
+let result = factorial(10) in
+print(int_to_string(result))

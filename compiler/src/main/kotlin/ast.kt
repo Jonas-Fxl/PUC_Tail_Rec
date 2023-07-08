@@ -32,7 +32,7 @@ sealed class Primitive {
 }
 
 enum class Operator {
-    Add, Sub, Mul, Div, Eq, Or, And, Concat
+    Add, Sub, Mul, Div, Eq, Or, And, Concat, EqualOrLess, EqualOrMore
 }
 
 sealed class Monotype {
@@ -93,22 +93,3 @@ data class Polytype(val vars: List<String>, val type: Monotype) {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

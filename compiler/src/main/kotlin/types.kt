@@ -24,6 +24,8 @@ class Typechecker {
             )
 
             is Monotype.Unknown -> solution[ty.u]?.let { applySolution(it) } ?: ty
+            else -> { TODO()
+            }
         }
     }
 
@@ -35,6 +37,7 @@ class Typechecker {
         }
     }
 
+    //Hier Problem wenn Integer und Integer unify
     fun unify(ty1: Monotype, ty2: Monotype) {
         val ty1 = applySolution(ty1)
         val ty2 = applySolution(ty2)
@@ -93,7 +96,9 @@ class Typechecker {
                     Operator.Mul,
                     Operator.Div -> Triple(Monotype.Integer, Monotype.Integer, Monotype.Integer)
 
-                    Operator.Eq -> Triple(Monotype.Integer, Monotype.Integer, Monotype.Bool)
+                    Operator.Eq,
+                    Operator.EqualOrLess,
+                    Operator.EqualOrMore -> Triple(Monotype.Integer, Monotype.Integer, Monotype.Bool)
 
                     Operator.Or,
                     Operator.And -> Triple(Monotype.Bool, Monotype.Bool, Monotype.Bool)

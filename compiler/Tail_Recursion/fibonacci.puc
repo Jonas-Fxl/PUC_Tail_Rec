@@ -1,0 +1,21 @@
+def fibonacci_tail(n: Integer): Integer =>
+    fibonacciHelper(n)(0)(1)
+
+def fibonacciHelper(counter: Integer, result: Integer, next: Integer): Integer =>
+        if counter == 0 then
+            result
+        else
+            let printedInt = int_to_string(result) in
+            let _ = print(printedInt) in
+            fibonacciHelper(counter - 1)(next)(result + next)
+
+def fibonacci(n: Integer): Integer =>
+    if n == 0 then
+        1
+    else
+        let printedInt = int_to_string(n) in
+        let _ = print(printedInt) in
+        n + fibonacci(n - 1)
+
+let erg = fibonacci_tail(10) in
+print(int_to_string(erg))

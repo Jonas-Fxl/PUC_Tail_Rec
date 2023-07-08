@@ -1,6 +1,8 @@
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentHashMap
+import java.beans.Expression
+import kotlin.math.exp
 
 typealias Env = PersistentMap<String, Value>
 
@@ -17,11 +19,13 @@ sealed class Value {
     }
 }
 
+
 val emptyEnv: Env = persistentMapOf()
 
 fun closureEval(prog: Prog): Value {
     return Evaluator(prog.fnDefs).eval(emptyEnv, prog.expr)
 }
+
 
 data class BuiltIn(val name: String, val arity: Int, val type: Monotype)
 
@@ -61,7 +65,9 @@ class Evaluator(fnDefs: List<FnDef>) {
                 eval(newEnv, closure.body)
             }
 
-            is Expr.Lambda -> Value.Closure(env, expr.param, expr.body)
+            is Expr.Lambda -> {
+                Value.Closure(env, expr.param, expr.body)
+            }
             is Expr.Lit -> when (val prim = expr.p) {
                 is Primitive.Bool -> Value.Bool(prim.value)
                 is Primitive.Integer -> Value.Integer(prim.value)
@@ -108,6 +114,12 @@ class Evaluator(fnDefs: List<FnDef>) {
 
                     Operator.Concat ->
                         evalBinary<Value.Text>(left, right) { l, r -> Value.Text(l.value + r.value) }
+
+                    Operator.EqualOrLess ->
+                        evalBinary<Value.Integer>(left, right) { l, r -> Value.Bool(l.value <= r.value) }
+
+                    Operator.EqualOrMore ->
+                        evalBinary<Value.Integer>(left, right) { l, r -> Value.Bool(l.value >= r.value) }
                 }
             }
 
@@ -163,6 +175,10 @@ class Evaluator(fnDefs: List<FnDef>) {
                 }
                 throw Error("Failed to match $scrutinee")
             }
+
+            else -> {
+                TODO()
+            }
         }
     }
 
@@ -178,6 +194,10 @@ class Evaluator(fnDefs: List<FnDef>) {
                     }
                 }
             }
+
+            else -> {
+                TODO()
+            }
         }
         return null
     }
@@ -185,5 +205,3 @@ class Evaluator(fnDefs: List<FnDef>) {
     inline fun <reified T> evalBinary(left: Value, right: Value, f: (T, T) -> Value): Value =
         f(left.castAs<T>(), right.castAs<T>())
 }
-
-
