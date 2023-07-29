@@ -1,5 +1,7 @@
-import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.CharStreams
+import org.antlr.v4.runtime.CommonTokenStream
+import org.antlr.v4.runtime.ParserRuleContext
+import org.antlr.v4.runtime.tree.ParseTree
 
 fun parseString(input: String): Prog {
     val lexer = PucLexer(CharStreams.fromString(input))
@@ -25,7 +27,7 @@ fun parseInner(lexer: PucLexer): Prog {
     return ProgVisitor().visit(tree)
 }
 
-class ProgVisitor(): PucBaseVisitor<Prog>() {
+class ProgVisitor() : PucBaseVisitor<Prog>() {
     override fun visitProg(ctx: PucParser.ProgContext): Prog {
         val fnDefs = ctx.fnDef().map { FnDefVisitor().visit(it) }
         val typeDefs = ctx.typeDef().map { TypeDefVisitor().visit(it) }
@@ -45,13 +47,57 @@ class FnDefVisitor : PucBaseVisitor<FnDef>() {
         val body = ExprVisitor().visit(ctx.body)
         val expr = params.foldRight(body) { (param, tyParam), acc -> Expr.Lambda(param, tyParam, acc) }
 
+        println("BEGIN --------- ${name}--------BEGIN")
+        println(isRecursive(ctx.body, name))
+        println("END --------- ${name}---------- END")
+
         val tyVars = ctx.tyVars()?.NAME()?.map { it.text } ?: listOf()
         val ty = params.foldRight(tyResult) { (_, ty), acc -> Monotype.Function(ty, acc) }
         return FnDef(name, expr, Polytype(tyVars, ty))
     }
 }
 
-class TypeDefVisitor(): PucBaseVisitor<TypeDef>() {
+fun isRecursive(body: ParserRuleContext, name: String): Boolean {
+    body.children.forEach { child ->
+        when (child) {
+            is PucParser.IfContext -> {
+                isRecursive(child.elseBranch, name)
+                // isRecursive(child.thenBranch, name) || isRecursive(child.elseBranch, name)
+            }
+
+            else -> {
+                for (i in 0..child.childCount) {
+                    val newChild = child.getChild(i)
+                    if (newChild !== null) {
+                        hasChildWithName(newChild, name)
+                    }
+                }
+            }
+
+        }
+    }
+
+    return false
+}
+
+fun hasChildWithName(child: ParseTree, name: String): Boolean {
+    for (i in 0..child.childCount) {
+        val newChild = child.getChild(i)
+        if (newChild === null) {
+            return false
+        }
+        if (newChild.text == name) {
+            return true
+        }
+        if (hasChildWithName(newChild, name)) {
+            return true
+        }
+    }
+
+    return false
+}
+
+class TypeDefVisitor() : PucBaseVisitor<TypeDef>() {
     override fun visitTypeDef(ctx: PucParser.TypeDefContext): TypeDef {
         val name = ctx.name.text
         val constructors = ctx.typeConstructor().map {
@@ -63,7 +109,7 @@ class TypeDefVisitor(): PucBaseVisitor<TypeDef>() {
     }
 }
 
-class PatternVisitor(): PucBaseVisitor<Pattern>() {
+class PatternVisitor() : PucBaseVisitor<Pattern>() {
     override fun visitPattern(ctx: PucParser.PatternContext): Pattern {
         val type = ctx.typ.text
         val name = ctx.constr.text
@@ -72,7 +118,7 @@ class PatternVisitor(): PucBaseVisitor<Pattern>() {
     }
 }
 
-class TypeVisitor(): PucBaseVisitor<Monotype>() {
+class TypeVisitor() : PucBaseVisitor<Monotype>() {
     override fun visitTyBool(ctx: PucParser.TyBoolContext?): Monotype {
         return Monotype.Bool
     }
@@ -105,7 +151,7 @@ class TypeVisitor(): PucBaseVisitor<Monotype>() {
     }
 }
 
-class ExprVisitor(): PucBaseVisitor<Expr>() {
+class ExprVisitor() : PucBaseVisitor<Expr>() {
 
     override fun visitVar(ctx: PucParser.VarContext): Expr {
         return Expr.Var(ctx.NAME().text)
@@ -133,7 +179,7 @@ class ExprVisitor(): PucBaseVisitor<Expr>() {
     //Function handler
     override fun visitLambda(ctx: PucParser.LambdaContext): Expr {
         val param = ctx.param.text
-        val tyParam = ctx.tyParam?.let{ TypeVisitor().visit(it) }
+        val tyParam = ctx.tyParam?.let { TypeVisitor().visit(it) }
         val body = this.visit(ctx.body)
         return Expr.Lambda(param, tyParam, body)
     }
@@ -181,7 +227,7 @@ class ExprVisitor(): PucBaseVisitor<Expr>() {
 
     override fun visitBinary(ctx: PucParser.BinaryContext): Expr {
         val left = this.visit(ctx.left)
-        val op = when(ctx.op.text) {
+        val op = when (ctx.op.text) {
             "+" -> Operator.Add
             "-" -> Operator.Sub
             "*" -> Operator.Mul

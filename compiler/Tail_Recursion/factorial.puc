@@ -15,5 +15,5 @@ def factorial(n: Integer): Integer =>
     else
         n * factorial(n - 1)
 
-let result = factorial(10) in
+let result = factorial_tail(10) in
 print(int_to_string(result))
