@@ -9,11 +9,5 @@ def factorialHelper(n: Integer, acc: Integer): Integer =>
     let _ = print(printedInt) in
     factorialHelper(n - 1)(acc * n)
 
-def factorial(n: Integer): Integer =>
-    if n == 0 then
-        1
-    else
-        n * factorial(n - 1)
-
 let result = factorial_tail(10) in
 print(int_to_string(result))

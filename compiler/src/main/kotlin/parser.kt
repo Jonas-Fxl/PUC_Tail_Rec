@@ -1,3 +1,4 @@
+import PucParser.ExprContext
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.ParserRuleContext
@@ -47,9 +48,9 @@ class FnDefVisitor : PucBaseVisitor<FnDef>() {
         val body = ExprVisitor().visit(ctx.body)
         val expr = params.foldRight(body) { (param, tyParam), acc -> Expr.Lambda(param, tyParam, acc) }
 
-        println("BEGIN --------- ${name}--------BEGIN")
+        println("\nBEGIN --------- ${name}--------BEGIN")
         println(isRecursive(ctx.body, name))
-        println("END --------- ${name}---------- END")
+        println("END --------- ${name}---------- END\n")
 
         val tyVars = ctx.tyVars()?.NAME()?.map { it.text } ?: listOf()
         val ty = params.foldRight(tyResult) { (_, ty), acc -> Monotype.Function(ty, acc) }
@@ -57,19 +58,23 @@ class FnDefVisitor : PucBaseVisitor<FnDef>() {
     }
 }
 
-fun isRecursive(body: ParserRuleContext, name: String): Boolean {
+fun isRecursive(body: ExprContext, name: String): Boolean {
     body.children.forEach { child ->
         when (child) {
             is PucParser.IfContext -> {
-                isRecursive(child.elseBranch, name)
                 // isRecursive(child.thenBranch, name) || isRecursive(child.elseBranch, name)
+                if(isRecursive(child.elseBranch, name)) {
+                    return true
+                }
             }
 
             else -> {
                 for (i in 0..child.childCount) {
                     val newChild = child.getChild(i)
                     if (newChild !== null) {
-                        hasChildWithName(newChild, name)
+                        if(hasChildWithName(newChild, name)) {
+                            return true
+                        }
                     }
                 }
             }
